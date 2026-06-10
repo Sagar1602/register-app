@@ -20,6 +20,7 @@ jobs:
 
   TOOLS_INSTALLATION_VERIFICATION:
     runs-on: self-hosted
+    needs: CODE_CHECKOUT
     steps:
       - name: checking java version
         run: java --version    
@@ -28,18 +29,21 @@ jobs:
         run: mvn --version
 
   BUILD_APPLICATION:
+    needs: TOOLS_INSTALLATION_VERIFICATION
     runs-on: self-hosted
     steps:
       - name: Cleaning and package Installing
         run: mvn clean package      
 
   Verify_Compilation:
+    needs: BUILD_APPLICATION
     runs-on: self-hosted
     steps:
       - name: Listing compiled class files in target/classes
         run: find target/classes -name "*.class" || echo "No .class files found!"
 
   SONAR_SCAN:
+    needs: Verify_Compilation
     runs-on: self-hosted
     steps:
       - name: Run Sonar Analysis
@@ -52,6 +56,7 @@ jobs:
           -Dsonar.host.url=${{env.SONARQUBE_SERVER}}        
 
   DOCKER_IMAGE_BUILD_AND_PUSH:
+    needs: SONAR_SCAN
     runs-on: self-hosted
     steps:
       - name: Building the Image 
@@ -74,6 +79,7 @@ jobs:
         run: docker push ${{secrets.DOCKER_USERNAME}}/$DOCKER_IMAGE:latest
 
   TRIVY_SCANNING:
+    needs: DOCKER_IMAGE_BUILD_AND_PUSH
     runs-on: self-hosted
     steps:
       - name: Mounting the Docker Deamon in the Trivy Conatiner
@@ -85,6 +91,7 @@ jobs:
           --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table
 
   HOSTING_THE_APPLICATION_TO_THE_SERVER:
+    needs: TRIVY_SCANNING
     runs-on: self-hosted
     steps:
       - name: Host the application to the server 
@@ -94,6 +101,7 @@ jobs:
         run: sleep 30
 
   DAST_SCAN:
+    needs: HOSTING_THE_APPLICATION_TO_THE_SERVER
     runs-on: self-hosted
     steps:
       - name: OWASP ZAP scan 
