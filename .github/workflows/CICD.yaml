@@ -60,7 +60,7 @@ jobs:
            mvn clean verify sonar:sonar \
           -Dsonar.projectKey=game-app_ga-1 \
           -Dsonar.token=${{env.SONAR_TOKEN}} \
-          -Dsonar.sources=. \
+          
           -Dsonar.host.url=${{env.SONARQUBE_SERVER}}        
 
   DOCKER_IMAGE_BUILD_AND_PUSH:
