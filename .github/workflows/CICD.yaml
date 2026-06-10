@@ -51,6 +51,10 @@ jobs:
 
       - name: Run Sonar Analysis
         run: |
+          echo $PATH
+          which sonar-scanner
+          sonar-scanner --version
+
           sonar-scanner \
           -Dsonar.projectKey=game-app_ga-1 \
           -Dsonar.token=${{env.SONAR_TOKEN}} \
