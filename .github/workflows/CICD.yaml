@@ -57,7 +57,7 @@ jobs:
       - name: Building the Image 
         run: |
           IMAGE_NAME: ${{secrets.DOCKER_USERNAME}}/${{env.APP_NAME}}
-          IMAGE_TAG: ${{RELEASE}}-${{github.run_number}}
+          IMAGE_TAG: ${{env.RELEASE}}-${{github.run_number}}
           DOCKER_IMAGE=${{IMAGE_NAME}}/${{IMAGE_TAG}}
           build -t ${{DOCKER_IMAGE}} 
 
