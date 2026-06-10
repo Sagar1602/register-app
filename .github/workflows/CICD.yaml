@@ -141,6 +141,8 @@ jobs:
           docker rmi ${IMAGE_NAME}:latest || true                  
 
   POST_ACTIVITY:
+    needs: CLEANUP_ARTIFACT
+    if: always()
     runs-on: self-hosted
     steps:
       - name: Creating github issue on failure
