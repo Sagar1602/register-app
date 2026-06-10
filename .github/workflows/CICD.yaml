@@ -48,6 +48,7 @@ jobs:
     needs: Verify_Compilation
     runs-on: self-hosted
     steps:
+    
       - name: Run Sonar Analysis
         run: |
           sonar-scanner\
