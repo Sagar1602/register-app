@@ -122,7 +122,7 @@ jobs:
     - name: View ZAP report
       run: ls -l
 
-  CLEANUP_ARTIFACT
+  CLEANUP_ARTIFACT:
   needs: VIEW_ZAP_REPORT
   runs-on: self-hosted
   steps:
