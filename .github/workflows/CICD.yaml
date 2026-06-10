@@ -48,10 +48,10 @@ jobs:
     needs: Verify_Compilation
     runs-on: self-hosted
     steps:
-    
+
       - name: Run Sonar Analysis
         run: |
-          sonar-scanner\
+          sonar-scanner \
           -Dsonar.projectKey=game-app_ga-1 \
           -Dsonar.organization=game-app \
           -Dsonar.token=${{env.SONAR_TOKEN}} \
