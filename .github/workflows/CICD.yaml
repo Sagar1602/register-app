@@ -52,8 +52,10 @@ jobs:
       - name: Run Sonar Analysis
         run: |
           echo $PATH
-          which sonar-scanner
-          sonar-scanner --version
+          which sonar-scanner || true
+          ls -l /opt/sonar-scanner/bin
+
+          /opt/sonar-scanner/bin/sonar-scanner --version
 
           /opt/sonar-scanner/bin/sonar-scanner \
           -Dsonar.projectKey=game-app_ga-1 \
