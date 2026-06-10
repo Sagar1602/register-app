@@ -85,7 +85,7 @@ jobs:
         aquasec/trivy image ${IMAGE_NAME}:${IMAGE_TAG} \
         --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table
 
-  HOSTING_THE_APPLICATION_TO_THE_SERVER
+  HOSTING_THE_APPLICATION_TO_THE_SERVER:
   runs-on: self-hosted
   steps:
     - name: Host the application to the server 
