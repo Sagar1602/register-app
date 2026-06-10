@@ -1,0 +1,176 @@
+name: CICD_Workflow_1
+on: 
+  push:
+    branches: [main]
+env:
+  APP_NAME: register-app-pipeline
+  RELEASE: 1.0.0
+  IMAGE_NAME: ${{secrets.DOCKER_USERNAME}}/${{APP_NAME}}
+  IMAGE_TAG: ${{RELEASE}}-${{github.run_number}}
+  SONAR_TOKEN: ${{secrets.SONARQUBE_TOKEN}}
+  SONARQUBE_SERVER: ${{secrets.SONARQUBE_SERVER}}
+
+jobs:
+
+  CODE_CHECKOUT:
+  runs-on: self-hosted
+  steps:
+    - name: clean-up workspace
+      run: cleanWs()
+
+    - name: Code Checkout
+      uses: actions/checkout@v4
+
+  TOOLS_INSTALLATION_VERIFICATION:
+  runs-on: self-hosted
+  steps:
+    - name: checking java version
+      run: java --version    
+    
+    - name: checking Maven version
+      run: mvn --version
+
+  BUILD_APPLICATION:
+  runs-on: self-hosted
+  steps:
+    - name: Cleaning and package Installing
+      run: mvn clean package      
+
+  Verify_Compilation:
+  runs-on: self-hosted
+  steps:
+    - name: Listing compiled class files in target/classes
+      run: find target/classes -name "*.class" || echo "No .class files found!"
+
+  SONAR_SCAN:
+  runs-on: self-hosted
+  steps:
+    - name: Run Sonar Analysis
+      run: |
+        sonar-scanner\
+          -Dsonar.projectKey=game-app_ga-1 \
+          -Dsonar.organization=game-app \
+          -Dsonar.token=${{env.SONAR_TOKEN}} \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=${{env.SONARQUBE_SERVER}}        
+
+  DOCKER_IMAGE_BUILD_AND_PUSH:
+  runs-on: self-hosted
+  steps:
+    - name: Building the Image 
+      runs: |
+        DOCKER_IMAGE=${{env.IMAGE_NAME}}/${{env.IMAGE_TAG}}
+        docker build -t ${{DOCKER_IMAGE}} 
+
+    - name: Print Docker Image
+      run: echo $DOCKER_IMAGE
+
+    - name: SUDO Docker Image
+      run: echo sudo docker images  
+
+    - name: DockerHub Login
+      run: docker login -u ${{secrets.DOCKER_USERNAME}}
+
+    - name: Image Push To Registry
+      run: docker push ${{secrets.DOCKER_USERNAME}}/$DOCKER_IMAGE:latest
+
+  TRIVY_SCANNING:
+  runs-on: self-hosted
+  steps:
+    - name: Mounting the Docker Deamon in the Trivy Conatiner
+      run: docker run -v /var/run/docker.shock:var/run/docker.shock
+
+    - name: Pulling the Trivy Container and scanning the docker image
+      run: |
+        aquasec/trivy image ${IMAGE_NAME}:${IMAGE_TAG} \
+        --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table
+
+  HOSTING_THE_APPLICATION_TO_THE_SERVER
+  runs-on: self-hosted
+  steps:
+    - name: Host the application to the server 
+      run: |
+        docker run -d -p 8082:8080 --name test-app ${IMAGE_NAME}:${IMAGE_TAG}
+    - name: wait period
+      run: sleep 30
+
+  DAST_SCAN:
+  runs-on: self-hosted
+  steps:
+    - name: OWASP ZAP scan 
+      uses: zaproxy/action-baseline@v0.14.0
+      with:
+        target: ''
+        cmd_options: '-r zap-report.html'
+
+    - name: uplaod ZAP report Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-report
+        path: zap-report.html
+
+
+  VIEW_ZAP_REPORT:
+  needs: DAST_SCAN
+  runs-on: self-hosted
+  steps:
+    - name: Download ZAP artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: zap-report
+
+    - name: View ZAP report
+      run: ls -l
+
+  CLEANUP_ARTIFACT
+  needs: VIEW_ZAP_REPORT
+  runs-on: self-hosted
+  steps:
+    - name: Delein the DOcker images
+      run: |
+        docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+        docker rmi ${IMAGE_NAME}:latest || true                  
+
+  POST_ACTIVITY:
+  runs-on: self-hosted
+  steps:
+    - name: Creating github issue on failure
+      if: failure()
+      env: 
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      run: |
+        ISSUE_TITLE="Workflow Got failed: ${{github.workflow}} #${{github.run_number}}"
+
+        ISSUE_BODY="Body URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        Workflow: ${{ github.workflow }}
+        Run Number: ${{ github.run_number }}
+        Result: FAILURE
+        Please check logs for details."
+
+
+        curl -s -X POST \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues \
+          -d "$(jq -n --arg title "$ISSUE_TITLE" --arg body "$ISSUE_BODY" '{title:$title, body:$body}')"
+
+
+    - name: Send Success Email
+      if: success()
+      uses: dawidd6/action-send-mail@v3
+      with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "${{github.workflow}} - Build ${{github.run_number}} Successful"
+          to: kabir647474@gmail.com
+          from: CI Pipeline
+          body: |
+            Build Successful 
+
+            Workflow: ${{ github.workflow }}
+            Run Number: ${{ github.run_number }}
+            Repo: ${{ github.repository }}
+
+            View Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}                     
