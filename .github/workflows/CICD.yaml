@@ -57,7 +57,7 @@ jobs:
 
           /opt/sonar-scanner/bin/sonar-scanner --version
 
-          /opt/sonar-scanner/bin/sonar-scanner \
+           mvn clean verify sonar:sonar \
           -Dsonar.projectKey=game-app_ga-1 \
           -Dsonar.token=${{env.SONAR_TOKEN}} \
           -Dsonar.sources=. \
