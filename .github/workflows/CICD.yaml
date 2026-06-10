@@ -12,6 +12,7 @@ jobs:
 
   CODE_CHECKOUT:
   runs-on: self-hosted
+  
   steps:
     - name: clean-up workspace
       run: cleanWs()
