@@ -5,7 +5,7 @@ on:
 env:
   APP_NAME: register-app-pipeline
   RELEASE: 1.0.0
-  IMAGE_NAME: ${{secrets.DOCKER_USERNAME}}/${{APP_NAME}}
+  IMAGE_NAME: ${{secrets.DOCKER_USERNAME}}/${{env.APP_NAME}}
   IMAGE_TAG: ${{RELEASE}}-${{github.run_number}}
   SONAR_TOKEN: ${{secrets.SONARQUBE_TOKEN}}
   SONARQUBE_SERVER: ${{secrets.SONARQUBE_SERVER}}
