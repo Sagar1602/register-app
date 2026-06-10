@@ -9,7 +9,6 @@ env:
   SONARQUBE_SERVER: ${{secrets.SONARQUBE_SERVER}}
 
 jobs:
-
   CODE_CHECKOUT:
   runs-on: self-hosted
   steps:
