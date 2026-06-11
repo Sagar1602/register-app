@@ -111,6 +111,9 @@ jobs:
         with:
           target: 'http://65.2.121.174:8082/'
           cmd_options: '-r zap-report.html'
+          issue_title: ''
+          fail_on_error: false
+          fail_on_warn: false 
 
       - name: uplaod ZAP report Artifact
         uses: actions/upload-artifact@v4
@@ -129,7 +132,7 @@ jobs:
           name: zap-report
 
       - name: View ZAP report
-        run: ls -l
+        run: ls -lh zap-report.html
 
   CLEANUP_ARTIFACT:
     needs: VIEW_ZAP_REPORT
@@ -144,6 +147,22 @@ jobs:
     runs-on: self-hosted
     if: always()
     steps:
+      - name: Creating github issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Workflow Failed: ${context.workflow} #${context.runNumber}`,
+            body: `Build URL: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+            
+            Workflow: ${context.workflow}
+            Run Number: ${context.runNumber}
+            Result: FAILURE
+
+            Please check logs for details.)}
       - name: Send Success Email
         if: success()
         uses: dawidd6/action-send-mail@v3
