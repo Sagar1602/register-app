@@ -88,9 +88,11 @@ jobs:
     steps:
       - name: Mounting the Docker Deamon in the Trivy Conatiner and Pulling and Scanning the docker image
         run: | 
-          docker run -v /var/run/docker.sock:/var/run/docker.sock \
+          docker run -rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v $PWD/trivy-report:/reports \
           aquasec/trivy image ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} \
-          --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table
+          --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table -o /reports/trivy-report.txt
 
       - name: Upload Trivy report artifact
         uses: actions/upload-artifact@v4
