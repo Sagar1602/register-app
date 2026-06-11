@@ -86,15 +86,10 @@ jobs:
     needs: DOCKER_IMAGE_BUILD_AND_PUSH
     runs-on: self-hosted
     steps:
-      - name: Mounting the Docker Deamon in the Trivy Conatiner
+      - name: Mounting the Docker Deamon in the Trivy Conatiner and Pulling and Scanning the docker image
         run: | 
           docker run -v /var/run/docker.sock:/var/run/docker.sock \
           aquasec/trivy image ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} \
-          --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table 
-
-      - name: Pulling the Trivy Container and scanning the docker image
-        run: |
-          aquasec/trivy image ${IMAGE_NAME}:${IMAGE_TAG} \
           --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table
 
   HOSTING_THE_APPLICATION_TO_THE_SERVER:
