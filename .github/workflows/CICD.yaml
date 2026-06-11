@@ -106,9 +106,9 @@ jobs:
     needs: HOSTING_THE_APPLICATION_TO_THE_SERVER
     runs-on: self-hosted
     steps:
-      name: OWASP ZAP Security Scan
-      run: |
-        docker run --rm -v $(pwd):/zap/wrk:rw \
+      - name: OWASP ZAP Security Scan
+        run: |
+          docker run --rm -v $(pwd):/zap/wrk:rw \
           -t owasp/zap2docker-stable zap-baseline.py \
           -t http://65.2.121.174:8082/ \
           -r zap-report.html || true
