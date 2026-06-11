@@ -146,7 +146,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Creating github issue on failure
-        if: failure()
         env: 
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
