@@ -112,8 +112,10 @@ jobs:
           target: 'http://65.2.121.174:8082/'
           cmd_options: '-r zap-report.html'
           issue_title: ''
+          issue_body: ''
           fail_on_error: false
           fail_on_warn: false 
+          token: ''
 
       - name: uplaod ZAP report Artifact
         uses: actions/upload-artifact@v4
