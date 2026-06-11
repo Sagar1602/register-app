@@ -98,7 +98,7 @@ jobs:
     steps:
       - name: Host the application to the server 
         run: |
-          docker run -d -p 8082:8080 --name test-app ${IMAGE_NAME}:${IMAGE_TAG}
+          docker run -d -p 8082:8080 --name test-app ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} 
       - name: wait period
         run: sleep 30
 
@@ -137,8 +137,7 @@ jobs:
     steps:
       - name: Delein the DOcker images
         run: |
-          docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
-          docker rmi ${IMAGE_NAME}:latest || true                  
+          docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} || true                
 
   POST_ACTIVITY:
     needs: CLEANUP_ARTIFACT
