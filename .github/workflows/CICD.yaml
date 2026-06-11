@@ -133,19 +133,18 @@ jobs:
 
   CLEANUP_ARTIFACT:
     needs: VIEW_ZAP_REPORT
-    if: always()
     runs-on: self-hosted
     steps:
-      - name: Delein the DOcker images
+      - name: Deleing the Docker images
         run: |
           docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} || true                
 
   POST_ACTIVITY:
     needs: CLEANUP_ARTIFACT
-    if: always()
     runs-on: self-hosted
     steps:
       - name: Creating github issue on failure
+        if: failure()
         env: 
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
