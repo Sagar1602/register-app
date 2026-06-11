@@ -142,6 +142,7 @@ jobs:
   POST_ACTIVITY:
     needs: CLEANUP_ARTIFACT
     runs-on: self-hosted
+    if: always()
     steps:
       - name: Creating github issue on failure
         if: failure()
