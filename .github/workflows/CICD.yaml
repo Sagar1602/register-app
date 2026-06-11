@@ -109,7 +109,7 @@ jobs:
       - name: OWASP ZAP scan 
         uses: zaproxy/action-baseline@v0.14.0
         with:
-          target: ''
+          target: 'http://65.2.121.174:8082/'
           cmd_options: '-r zap-report.html'
 
       - name: uplaod ZAP report Artifact
