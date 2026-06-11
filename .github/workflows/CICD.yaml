@@ -1,8 +1,8 @@
 name: CICD_Workflow_1
 on:
-  - workflow_dispatch 
-  - push:
-      branches: [main]
+  workflow_dispatch:
+  push:
+    branches: [main]
 env:
   APP_NAME: register-app-pipeline
   RELEASE: 1.0.0
