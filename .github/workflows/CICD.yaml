@@ -68,15 +68,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Building the Image 
-        run: |
-          IMAGE_NAME=${{secrets.DOCKER_USERNAME}}/${{env.APP_NAME}}
-          IMAGE_TAG=${{env.RELEASE}}-${{github.run_number}}
-          DOCKER_IMAGE=$IMAGE_NAME:$IMAGE_TAG
-          echo "DOCKER_IMAGE=$DOCKER_IMAGE" >> $GITHUB_ENV
-          docker build -t $DOCKER_IMAGE .
-
-      - name: Print Docker Image
-        run: echo $DOCKER_IMAGE
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} .
 
       - name: SUDO Docker Image
         run: docker images  
@@ -88,8 +80,7 @@ jobs:
           password: ${{secrets.DOCKER_PASSWORD}}
 
       - name: Image Push To Registry
-        run: |
-          docker push $DOCKER_IMAGE:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }}
 
   TRIVY_SCANNING:
     needs: DOCKER_IMAGE_BUILD_AND_PUSH
