@@ -1,5 +1,6 @@
 name: CICD_Workflow_1
-on: 
+on:
+  workflow_dispatch 
   push:
     branches: [main]
 env:
