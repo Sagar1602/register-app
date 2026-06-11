@@ -92,8 +92,30 @@ jobs:
           aquasec/trivy image ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} \
           --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table
 
-  HOSTING_THE_APPLICATION_TO_THE_SERVER:
+      - name: Upload Trivy report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-scan-report
+          path: trivy-report/    
+
+  VIEW_TRIVY_REPORT:
     needs: TRIVY_SCANNING
+    runs-on: self-hosted
+    steps:
+      - name: Download Trivy artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: trivy-scan-report
+          path: downloaded-trivy-report
+
+      - name: View Trivy report
+        run: |
+          ls -l downloaded-trivy-report
+          cat downloaded-trivy-report/trivy-report.txt    
+           
+
+  HOSTING_THE_APPLICATION_TO_THE_SERVER:
+    needs: VIEW_TRIVY_REPORT
     runs-on: self-hosted
     steps:
       - name: Host the application to the server 
@@ -102,64 +124,8 @@ jobs:
       - name: wait period
         run: sleep 30
 
-  DAST_SCAN:
-    needs: HOSTING_THE_APPLICATION_TO_THE_SERVER
-    runs-on: self-hosted
-    steps:
-      - name: Check if application is running
-        run: |
-          echo "Checking if app is running on http://65.2.121.174:8082/"
-          curl -I http://65.2.121.174:8082/ || echo "Warning: App not responding"
-
-      - name: OWASP ZAP Security Scan
-        continue-on-error: true
-        run: |
-          echo "Starting ZAP scan..."
-          pwd
-          ls -la
-        
-          docker run --rm -v $(pwd):/zap/wrk:rw \
-          -t owasp/zap2docker-stable zap-baseline.py \
-          -t http://65.2.121.174:8082/ \
-          -r /zap/wrk/zap-report.html
-        
-          echo "ZAP scan completed"
-        
-        
-          if [ -f zap-report.html ]; then
-          echo "✓ Report file created successfully"
-          ls -lh zap-report.html
-          else
-          echo "⚠ Report file not found, creating empty one"
-          echo "ZAP scan completed but no report generated" > zap-report.html
-          fi
-
-      - name: Verify report exists
-        run: ls -lh zap-report.html
-
-      - name: Upload ZAP report Artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: zap-report.html
-          if-no-files-found: warn
-
-
-  VIEW_ZAP_REPORT:
-    needs: DAST_SCAN
-    runs-on: self-hosted
-    steps:
-      - name: Download ZAP artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: zap-report
-
-      - name: View ZAP report
-        run: ls -lh zap-report.html
-
   CLEANUP_ARTIFACT:
-    needs: VIEW_ZAP_REPORT
+    needs: HOSTING_THE_APPLICATION_TO_THE_SERVER
     runs-on: self-hosted
     steps:
       - name: Deleing the Docker images
