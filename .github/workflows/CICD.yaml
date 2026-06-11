@@ -88,7 +88,7 @@ jobs:
     steps:
       - name: Mounting the Docker Deamon in the Trivy Conatiner
         run: | 
-          docker run -v /var/run/docker.sock: /var/run/docker.sock \
+          docker run -v /var/run/docker.sock:/var/run/docker.sock \
           aquasec/trivy image ${{ secrets.DOCKER_USERNAME }}/${{ env.APP_NAME }}:${{ env.RELEASE }}-${{ github.run_number }} \
           --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table 
 
