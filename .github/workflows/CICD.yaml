@@ -133,6 +133,7 @@ jobs:
 
   CLEANUP_ARTIFACT:
     needs: VIEW_ZAP_REPORT
+    if: always()
     runs-on: self-hosted
     steps:
       - name: Delein the DOcker images
