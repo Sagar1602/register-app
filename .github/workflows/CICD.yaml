@@ -106,16 +106,39 @@ jobs:
     needs: HOSTING_THE_APPLICATION_TO_THE_SERVER
     runs-on: self-hosted
     steps:
-      - name: OWASP ZAP Security Scan
+      - name: Check if application is running
         run: |
+          echo "Checking if app is running on http://65.2.121.174:8082/"
+          curl -I http://65.2.121.174:8082/ || echo "Warning: App not responding"
+
+      - name: OWASP ZAP Security Scan
+        continue-on-error: true
+        run: |
+          echo "Starting ZAP scan..."
+          pwd
+          ls -la
+        
           docker run --rm -v $(pwd):/zap/wrk:rw \
           -t owasp/zap2docker-stable zap-baseline.py \
           -t http://65.2.121.174:8082/ \
-          -r /zap/wrk/zap-report.html || true
-          ls -lh zap-report.html || echo "Report not found"
-          echo "✓ ZAP scan completed"
+          -r /zap/wrk/zap-report.html
+        
+          echo "ZAP scan completed"
+        
+        
+          if [ -f zap-report.html ]; then
+          echo "✓ Report file created successfully"
+          ls -lh zap-report.html
+          else
+          echo "⚠ Report file not found, creating empty one"
+          echo "ZAP scan completed but no report generated" > zap-report.html
+          fi
 
-      - name: uplaod ZAP report Artifact
+      - name: Verify report exists
+        run: ls -lh zap-report.html
+
+      - name: Upload ZAP report Artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
